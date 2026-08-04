@@ -2,8 +2,8 @@
 
 Case pessoal de RevOps aplicado a dados: um banco Postgres único (Supabase) servindo dois front-ends com níveis de acesso diferentes, um dashboard público de leitura e um app mobile privado de escrita.
 
-![Dashboard público](https://danielterra13-lang.github.io/gestao-acoes-revops/revops-dashboard)
-
+[Dashboard público
+](https://danielterra13-lang.github.io/gestao-acoes-revops/revops-dashboard.html )
 ## Contexto
 
 Times de RevOps costumam ter um lugar só pra acompanhar as ações em andamento (o que está sendo feito, por quem, em que etapa, com que prioridade), e esse lugar quase sempre é uma planilha. Funciona até o momento em que mais de uma pessoa precisa editar ao mesmo tempo, ou até alguém precisar visualizar o status sem ter acesso de edição, ou até faltar controle de quem mudou o quê.
