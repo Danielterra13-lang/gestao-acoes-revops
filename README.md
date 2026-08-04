@@ -2,7 +2,7 @@
 
 Case pessoal de RevOps aplicado a dados: um banco Postgres único (Supabase) servindo dois front-ends com níveis de acesso diferentes, um dashboard público de leitura e um app mobile privado de escrita.
 
-![Dashboard público][https://danielterra13-lang.github.io/gestao-acoes-revops/revops-dashboard]
+![Dashboard público](https://danielterra13-lang.github.io/gestao-acoes-revops/revops-dashboard)
 
 ## Contexto
 
