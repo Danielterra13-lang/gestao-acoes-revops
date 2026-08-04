@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0e14">
+<title>Gestão de Ações — Painel privado</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#0a0e14;
+    --panel:#10151e;
+    --panel-2:#141a25;
+    --line:#212938;
+    --text:#e6ebf2;
+    --text-dim:#7c8798;
+    --text-faint:#4b5568;
+    --accent:#4fd1c5;
+    --accent-dim:#1f4744;
+    --green:#3fd18a;
+    --green-dim:#173428;
+    --yellow:#f5c451;
+    --yellow-dim:#3a2f14;
+    --orange:#f0985a;
+    --orange-dim:#3a2515;
+    --red:#f2607a;
+    --red-dim:#3a1620;
+    --slate:#93a8cc;
+    --slate-dim:#1e2838;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(79,209,197,0.07), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    min-height:100vh;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  button{font-family:inherit;}
+  input,select,textarea{font-family:inherit;}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  /* ===== LOGIN ===== */
+  #login-screen{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    padding:24px;
+    gap:22px;
+  }
+  .login-eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--accent);
+    text-transform:uppercase;
+  }
+  .login-title{font-size:24px; font-weight:600; text-align:center;}
+  .login-card{
+    width:100%; max-width:360px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+    display:flex; flex-direction:column; gap:12px;
+  }
+  .field-label{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  input[type=email], input[type=text], input[type=date], select, textarea{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    border-radius:9px;
+    padding:12px 13px;
+    font-size:15px;
+  }
+  textarea{resize:vertical; min-height:70px;}
+  .btn{
+    border:none;
+    border-radius:9px;
+    padding:13px 16px;
+    font-size:14.5px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-primary{background:var(--accent); color:#04211f;}
+  .btn-primary:disabled{opacity:.5;}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--text-dim);}
+  .btn-danger{background:var(--red-dim); color:var(--red); border:1px solid rgba(242,96,122,.3);}
+  .login-msg{font-size:13px; color:var(--text-dim); text-align:center; min-height:18px;}
+  .login-msg.ok{color:var(--green);}
+  .login-msg.err{color:var(--red);}
+
+  /* ===== APP SHELL ===== */
+  #app-screen{display:none; min-height:100vh; flex-direction:column;}
+  header.appbar{
+    position:sticky; top:0; z-index:5;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 18px calc(14px + env(safe-area-inset-top)) 18px;
+    padding-top:calc(16px + env(safe-area-inset-top));
+    border-bottom:1px solid var(--line);
+    background:rgba(10,14,20,.9);
+    backdrop-filter:blur(8px);
+  }
+  header.appbar h1{font-size:18px; font-weight:600;}
+  header.appbar .sub{font-family:var(--mono); font-size:10.5px; color:var(--text-dim); letter-spacing:.08em; text-transform:uppercase;}
+  .icon-btn{
+    background:var(--panel); border:1px solid var(--line); color:var(--text-dim);
+    border-radius:9px; padding:8px 12px; font-size:12.5px; cursor:pointer;
+  }
+
+  main{flex:1; padding:14px 14px 100px; display:flex; flex-direction:column; gap:10px;}
+
+  .empty-state{
+    text-align:center; color:var(--text-dim); font-size:14px;
+    padding:60px 20px;
+  }
+
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:13px;
+    padding:14px 15px;
+    display:flex; flex-direction:column; gap:9px;
+    cursor:pointer;
+  }
+  .card:active{border-color:var(--accent-dim);}
+  .card-top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+  .card-title{font-size:15px; font-weight:600; line-height:1.35;}
+  .status-badge{
+    font-family:var(--mono); font-size:10px; letter-spacing:.04em;
+    padding:4px 9px; border-radius:20px; white-space:nowrap; flex-shrink:0;
+  }
+  .status-concluido{color:var(--green); background:var(--green-dim);}
+  .status-andamento{color:var(--yellow); background:var(--yellow-dim);}
+  .status-parcial{color:var(--orange); background:var(--orange-dim);}
+  .status-naoiniciado{color:var(--slate); background:var(--slate-dim);}
+  .tags{display:flex; gap:6px; flex-wrap:wrap;}
+  .tag{
+    font-family:var(--mono); font-size:10px; padding:3px 8px;
+    border:1px solid var(--line); border-radius:6px; color:var(--text-dim);
+  }
+  .progress-track{height:5px; background:var(--panel-2); border-radius:4px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--accent);}
+  .card-foot{display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-faint); font-family:var(--mono);}
+
+  .fab{
+    position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom));
+    width:56px; height:56px; border-radius:50%;
+    background:var(--accent); color:#04211f;
+    border:none; font-size:26px; font-weight:600;
+    box-shadow:0 8px 24px rgba(79,209,197,.35);
+    cursor:pointer; z-index:6;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ===== MODAL / SHEET ===== */
+  #sheet-overlay{
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,.55);
+    z-index:10;
+  }
+  #sheet{
+    position:fixed; left:0; right:0; bottom:0; z-index:11;
+    background:var(--panel); border-top:1px solid var(--line);
+    border-radius:18px 18px 0 0;
+    max-height:88vh; overflow-y:auto;
+    padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+    transform:translateY(100%); transition:transform .25s ease;
+  }
+  #sheet.open{transform:translateY(0);}
+  #sheet-overlay.open{display:block;}
+  .sheet-handle{width:38px; height:4px; background:var(--line); border-radius:3px; margin:0 auto 14px;}
+  .sheet-title{font-size:17px; font-weight:600; margin-bottom:16px;}
+  .form-grid{display:flex; flex-direction:column; gap:13px;}
+  .form-row-2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .range-row{display:flex; align-items:center; gap:12px;}
+  .range-row output{font-family:var(--mono); font-size:14px; width:44px; text-align:right;}
+  input[type=range]{flex:1; accent-color:var(--accent);}
+  .sheet-actions{display:flex; gap:10px; margin-top:18px;}
+  .sheet-actions .btn{flex:1;}
+  .form-msg{font-size:13px; min-height:16px; text-align:center;}
+  .form-msg.err{color:var(--red);}
+  .form-msg.ok{color:var(--green);}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-eyebrow">RevOps · Painel privado</div>
+  <div class="login-title">Gestão de Ações</div>
+  <div class="login-card">
+    <label class="field-label" for="login-email">Seu e-mail</label>
+    <input type="email" id="login-email" placeholder="voce@email.com" autocomplete="email" inputmode="email">
+    <button class="btn btn-primary" id="btn-enviar-link">Enviar link mágico</button>
+    <div class="login-msg" id="login-msg"></div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app-screen">
+  <header class="appbar">
+    <div>
+      <h1>Gestão de Ações</h1>
+      <div class="sub" id="header-count">carregando…</div>
+    </div>
+    <button class="icon-btn" id="btn-sair">Sair</button>
+  </header>
+
+  <main id="lista"></main>
+
+  <button class="fab" id="btn-nova" aria-label="Nova ação">+</button>
+</div>
+
+<!-- ===== SHEET (form) ===== -->
+<div id="sheet-overlay"></div>
+<div id="sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="sheet-title">Nova ação</div>
+  <div class="form-grid">
+    <div>
+      <label class="field-label">Ação</label>
+      <input type="text" id="f-acao" placeholder="O que precisa ser feito">
+    </div>
+    <div class="form-row-2">
+      <div>
+        <label class="field-label">Tipo de ação</label>
+        <select id="f-tipo">
+          <option>Estratégica</option>
+          <option>Rotina</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Área envolvida</label>
+        <input type="text" id="f-area" placeholder="Vendas, Marketing…">
+      </div>
+    </div>
+    <div class="form-row-2">
+      <div>
+        <label class="field-label">Etapa</label>
+        <select id="f-etapa">
+          <option>Backlog</option>
+          <option>Planejamento</option>
+          <option>Operação</option>
+          <option>Validação</option>
+          <option>Inteligência</option>
+          <option>Finalização</option>
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Status</label>
+        <select id="f-status">
+          <option>Não iniciado</option>
+          <option>Em andamento</option>
+          <option>Parcial</option>
+          <option>Concluído</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <label class="field-label">% de conclusão</label>
+      <div class="range-row">
+        <input type="range" id="f-pct" min="0" max="100" step="5" value="0">
+        <output id="f-pct-out">0%</output>
+      </div>
+    </div>
+    <div>
+      <label class="field-label">Data de finalização</label>
+      <input type="date" id="f-data">
+    </div>
+    <div>
+      <label class="field-label">Importância da ação</label>
+      <textarea id="f-importancia" placeholder="Por que essa ação importa"></textarea>
+    </div>
+    <div class="form-msg" id="form-msg"></div>
+    <div class="sheet-actions">
+      <button class="btn btn-ghost" id="btn-cancelar">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar">Salvar</button>
+    </div>
+    <button class="btn btn-danger" id="btn-excluir" style="display:none; margin-top:10px;">Excluir ação</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ============================================================
+// Config
+// ============================================================
+const SUPABASE_URL = "https://qwfamvboojitfcbviyjz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_XYQh0g1gsm1q81TeIiB5EA_34aJZ9T_";
+const TABLE = "acoes_revops";
+
+// Sem localStorage/sessionStorage de propósito: a sessão vive só em memória,
+// então um refresh de página desloga (e pede o link mágico de novo).
+// Troca consciente de conveniência por não persistir token em disco.
+const memoryStorage = (() => {
+  const store = {};
+  return {
+    getItem: k => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = v; },
+    removeItem: k => { delete store[k]; },
+  };
+})();
+
+const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { storage: memoryStorage, persistSession: true, detectSessionInUrl: true }
+});
+
+// ============================================================
+// Estado
+// ============================================================
+let acoes = [];
+let editandoId = null;
+
+// ============================================================
+// Auth
+// ============================================================
+const loginScreen = document.getElementById("login-screen");
+const appScreen = document.getElementById("app-screen");
+const loginMsg = document.getElementById("login-msg");
+
+document.getElementById("btn-enviar-link").addEventListener("click", async () => {
+  const email = document.getElementById("login-email").value.trim();
+  if (!email){ setLoginMsg("Digita um e-mail primeiro.", "err"); return; }
+  setLoginMsg("Enviando…", "");
+  const { error } = await client.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin + window.location.pathname }
+  });
+  if (error) setLoginMsg("Erro ao enviar: " + error.message, "err");
+  else setLoginMsg("Link enviado. Abre o e-mail " + email + " e toca no link.", "ok");
+});
+
+document.getElementById("btn-sair").addEventListener("click", async () => {
+  await client.auth.signOut();
+});
+
+function setLoginMsg(text, cls){
+  loginMsg.textContent = text;
+  loginMsg.className = "login-msg" + (cls ? " " + cls : "");
+}
+
+client.auth.onAuthStateChange((event, session) => {
+  if (session){
+    loginScreen.style.display = "none";
+    appScreen.style.display = "flex";
+    // limpa o token da URL depois de usado
+    if (window.location.hash.includes("access_token")){
+      history.replaceState(null, "", window.location.pathname);
+    }
+    carregarAcoes();
+  } else {
+    appScreen.style.display = "none";
+    loginScreen.style.display = "flex";
+  }
+});
+
+// ============================================================
+// Dados
+// ============================================================
+async function carregarAcoes(){
+  document.getElementById("header-count").textContent = "carregando…";
+  const { data, error } = await client.from(TABLE).select("*").order("data_finalizacao", { ascending: true });
+  if (error){
+    document.getElementById("header-count").textContent = "erro ao carregar";
+    console.error(error);
+    return;
+  }
+  acoes = data;
+  renderLista();
+}
+
+function statusClass(status){
+  const s = (status || "").toLowerCase();
+  if (s.includes("concl")) return "status-concluido";
+  if (s.includes("parcial")) return "status-parcial";
+  if (s.includes("não") || s.includes("nao")) return "status-naoiniciado";
+  return "status-andamento";
+}
+
+function formatDataBR(iso){
+  if (!iso) return "sem prazo";
+  const [y,m,d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function renderLista(){
+  const main = document.getElementById("lista");
+  document.getElementById("header-count").textContent = acoes.length + " ações registradas";
+
+  if (acoes.length === 0){
+    main.innerHTML = `<div class="empty-state">Nenhuma ação ainda.<br>Toca no + pra lançar a primeira.</div>`;
+    return;
+  }
+
+  main.innerHTML = "";
+  acoes.forEach(a => {
+    const pct = Math.round((a.pct_conclusao || 0) * 100);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="card-top">
+        <div class="card-title">${escapeHtml(a.acao)}</div>
+        <span class="status-badge ${statusClass(a.status)}">${escapeHtml(a.status)}</span>
+      </div>
+      <div class="tags">
+        <span class="tag">${escapeHtml(a.tipo_acao)}</span>
+        <span class="tag">${escapeHtml(a.area_envolvida)}</span>
+        <span class="tag">${escapeHtml(a.etapa)}</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="card-foot">
+        <span>${pct}% concluído</span>
+        <span>${formatDataBR(a.data_finalizacao)}</span>
+      </div>
+    `;
+    card.addEventListener("click", () => abrirSheet(a));
+    main.appendChild(card);
+  });
+}
+
+function escapeHtml(str){
+  const d = document.createElement("div");
+  d.textContent = str ?? "";
+  return d.innerHTML;
+}
+
+// ============================================================
+// Sheet (form de criar/editar)
+// ============================================================
+const sheet = document.getElementById("sheet");
+const sheetOverlay = document.getElementById("sheet-overlay");
+const fPct = document.getElementById("f-pct");
+const fPctOut = document.getElementById("f-pct-out");
+
+fPct.addEventListener("input", () => { fPctOut.textContent = fPct.value + "%"; });
+
+document.getElementById("btn-nova").addEventListener("click", () => abrirSheet(null));
+document.getElementById("btn-cancelar").addEventListener("click", fecharSheet);
+sheetOverlay.addEventListener("click", fecharSheet);
+
+function abrirSheet(acao){
+  editandoId = acao ? acao.id : null;
+  document.getElementById("sheet-title").textContent = acao ? "Editar ação" : "Nova ação";
+  document.getElementById("btn-excluir").style.display = acao ? "block" : "none";
+  setFormMsg("", "");
+
+  document.getElementById("f-acao").value = acao ? acao.acao : "";
+  document.getElementById("f-tipo").value = acao ? acao.tipo_acao : "Estratégica";
+  document.getElementById("f-area").value = acao ? acao.area_envolvida : "";
+  document.getElementById("f-etapa").value = acao ? acao.etapa : "Backlog";
+  document.getElementById("f-status").value = acao ? acao.status : "Não iniciado";
+  const pct = acao ? Math.round((acao.pct_conclusao || 0) * 100) : 0;
+  fPct.value = pct; fPctOut.textContent = pct + "%";
+  document.getElementById("f-data").value = acao ? acao.data_finalizacao || "" : "";
+  document.getElementById("f-importancia").value = acao ? acao.importancia_acao || "" : "";
+
+  sheetOverlay.classList.add("open");
+  sheet.classList.add("open");
+}
+
+function fecharSheet(){
+  sheetOverlay.classList.remove("open");
+  sheet.classList.remove("open");
+}
+
+function setFormMsg(text, cls){
+  const el = document.getElementById("form-msg");
+  el.textContent = text;
+  el.className = "form-msg" + (cls ? " " + cls : "");
+}
+
+document.getElementById("btn-salvar").addEventListener("click", async () => {
+  const acao = document.getElementById("f-acao").value.trim();
+  const area = document.getElementById("f-area").value.trim();
+  if (!acao || !area){ setFormMsg("Preenche pelo menos Ação e Área.", "err"); return; }
+
+  const payload = {
+    acao,
+    tipo_acao: document.getElementById("f-tipo").value,
+    area_envolvida: area,
+    etapa: document.getElementById("f-etapa").value,
+    status: document.getElementById("f-status").value,
+    pct_conclusao: Number(fPct.value) / 100,
+    data_finalizacao: document.getElementById("f-data").value || null,
+    importancia_acao: document.getElementById("f-importancia").value.trim() || null,
+  };
+
+  setFormMsg("Salvando…", "");
+  const query = editandoId
+    ? client.from(TABLE).update(payload).eq("id", editandoId)
+    : client.from(TABLE).insert(payload);
+
+  const { error } = await query;
+  if (error){ setFormMsg("Erro ao salvar: " + error.message, "err"); return; }
+
+  fecharSheet();
+  carregarAcoes();
+});
+
+document.getElementById("btn-excluir").addEventListener("click", async () => {
+  if (!editandoId) return;
+  if (!confirm("Excluir essa ação? Não dá pra desfazer.")) return;
+  const { error } = await client.from(TABLE).delete().eq("id", editandoId);
+  if (error){ setFormMsg("Erro ao excluir: " + error.message, "err"); return; }
+  fecharSheet();
+  carregarAcoes();
+});
+</script>
+</body>
+</html>

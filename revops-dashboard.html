@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gestão RevOps — Console</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#0a0e14;
+    --panel:#10151e;
+    --panel-2:#141a25;
+    --line:#212938;
+    --text:#e6ebf2;
+    --text-dim:#7c8798;
+    --text-faint:#4b5568;
+    --accent:#4fd1c5;
+    --accent-dim:#1f4744;
+    --green:#3fd18a;
+    --green-dim:#173428;
+    --yellow:#f5c451;
+    --yellow-dim:#3a2f14;
+    --orange:#f0985a;
+    --orange-dim:#3a2515;
+    --red:#f2607a;
+    --red-dim:#3a1620;
+    --violet:#a78bfa;
+    --violet-dim:#2c2447;
+    --blue:#6ea8f5;
+    --blue-dim:#1c2c47;
+    --slate:#93a8cc;
+    --slate-dim:#1e2838;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'IBM Plex Sans', sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(79,209,197,0.06), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    padding:28px 24px 60px;
+    min-height:100vh;
+  }
+
+  .wrap{max-width:1240px;margin:0 auto;}
+
+  /* HEADER */
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:18px;
+    margin-bottom:22px;
+  }
+  .brand-eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.18em;
+    color:var(--accent);
+    text-transform:uppercase;
+    margin-bottom:6px;
+  }
+  h1{
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:-0.01em;
+  }
+  .status-line{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+  }
+  .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 0 3px var(--green-dim);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;}
+    50%{opacity:.4;}
+  }
+  #err-dot{background:var(--red);box-shadow:0 0 0 3px var(--red-dim);display:none;}
+
+  /* KPI ROW */
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:14px;
+    margin-bottom:22px;
+  }
+  .kpi{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    position:relative;
+    overflow:hidden;
+  }
+  .kpi::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:2px;
+    background:var(--kpi-color, var(--accent));
+    opacity:.7;
+  }
+  .kpi-label{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin-bottom:8px;
+  }
+  .kpi-value{
+    font-family:var(--mono);
+    font-size:30px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .kpi-sub{
+    font-size:11px;
+    color:var(--text-faint);
+    margin-top:4px;
+  }
+
+  .section-label{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--text-faint);
+    margin:6px 2px 10px;
+  }
+
+  /* FILTERS */
+  .filters{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px 16px;
+    margin-bottom:20px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:flex-end;
+  }
+  .filter-group{display:flex;flex-direction:column;gap:5px;min-width:150px;flex:1;}
+  .filter-group label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  select, input[type=date]{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:13px;
+    padding:8px 10px;
+    border-radius:6px;
+    outline:none;
+    appearance:none;
+    cursor:pointer;
+  }
+  select:focus, input[type=date]:focus{border-color:var(--accent);}
+  .filter-reset{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--accent);
+    background:transparent;
+    border:1px solid var(--accent-dim);
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:background .15s;
+  }
+  .filter-reset:hover{background:var(--accent-dim);}
+
+  .count-line{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--text-dim);
+    margin-bottom:14px;
+  }
+  .count-line b{color:var(--text);}
+
+  /* CARDS */
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(320px,1fr));
+    gap:14px;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition:border-color .15s;
+  }
+  .card:hover{border-color:#2b3547;}
+
+  .card-top{display:flex; justify-content:space-between; gap:10px; align-items:flex-start;}
+  .card-title{font-size:14.5px; font-weight:600; line-height:1.35; color:var(--text);}
+
+  .tags{display:flex; flex-wrap:wrap; gap:6px;}
+  .tag{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.03em;
+    padding:3px 8px;
+    border-radius:20px;
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    white-space:nowrap;
+  }
+  .tag-tipo.estrategica{color:var(--accent); border-color:var(--accent-dim); background:rgba(79,209,197,.08);}
+  .tag-tipo.rotina{color:var(--blue); border-color:var(--blue-dim); background:rgba(110,168,245,.08);}
+
+  .tag-etapa.etapa-inteligencia{color:var(--violet); border-color:var(--violet-dim); background:rgba(167,139,250,.08);}
+  .tag-etapa.etapa-operacao{color:var(--yellow); border-color:var(--yellow-dim); background:rgba(245,196,81,.08);}
+  .tag-etapa.etapa-validacao{color:var(--orange); border-color:var(--orange-dim); background:rgba(240,152,90,.08);}
+  .tag-etapa.etapa-finalizacao{color:var(--green); border-color:var(--green-dim); background:rgba(63,209,138,.08);}
+  .tag-etapa.etapa-planejamento{color:var(--slate); border-color:var(--slate-dim); background:rgba(147,168,204,.08);}
+
+  .status-badge{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.03em;
+    padding:3px 9px;
+    border-radius:20px;
+    white-space:nowrap;
+    font-weight:600;
+  }
+  .status-concluido{color:var(--green); background:var(--green-dim);}
+  .status-andamento{color:var(--yellow); background:var(--yellow-dim);}
+  .status-parcial{color:var(--orange); background:var(--orange-dim);}
+  .status-nao-iniciado{color:var(--slate); background:var(--slate-dim);}
+  .status-default{color:var(--text-dim); background:var(--panel-2);}
+
+  .meta-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 14px;
+    font-size:11.5px;
+    color:var(--text-dim);
+  }
+  .meta-row span b{color:var(--text-faint); font-weight:500;}
+
+  .progress-wrap{display:flex; flex-direction:column; gap:6px; margin-top:2px;}
+  .progress-label{
+    display:flex; justify-content:space-between;
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--text-dim);
+  }
+  .progress-track{
+    height:7px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:20px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    border-radius:20px;
+    transition:width .6s ease;
+  }
+
+  .importance-note{
+    margin-top:2px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+    font-size:11.5px;
+    line-height:1.5;
+    color:var(--text-dim);
+    font-style:italic;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--text-faint);
+    font-family:var(--mono);
+    font-size:13px;
+    border:1px dashed var(--line);
+    border-radius:10px;
+  }
+
+  footer{
+    margin-top:30px;
+    text-align:center;
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--text-faint);
+  }
+
+  @media (max-width:720px){
+    .kpis{grid-template-columns:repeat(2,1fr);}
+    .filter-group{min-width:130px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand-eyebrow">RevOps · Painel Operacional</div>
+      <h1>Gestão de Ações</h1>
+    </div>
+    <div class="status-line">
+      <span class="dot" id="live-dot"></span>
+      <span id="live-dot-err">●</span>
+      <span id="status-text">conectando ao banco…</span>
+    </div>
+  </header>
+
+  <div class="kpis">
+    <div class="kpi" style="--kpi-color:var(--accent)">
+      <div class="kpi-label">Total de ações</div>
+      <div class="kpi-value" id="kpi-total">–</div>
+      <div class="kpi-sub">registradas no banco</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--green)">
+      <div class="kpi-label">Concluídas</div>
+      <div class="kpi-value" id="kpi-concluido">–</div>
+      <div class="kpi-sub" id="kpi-concluido-pct">–</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--yellow)">
+      <div class="kpi-label">Em andamento</div>
+      <div class="kpi-value" id="kpi-andamento">–</div>
+      <div class="kpi-sub" id="kpi-andamento-pct">–</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--orange)">
+      <div class="kpi-label">% média de conclusão</div>
+      <div class="kpi-value" id="kpi-media">–</div>
+      <div class="kpi-sub">média entre todas as ações</div>
+    </div>
+  </div>
+
+  <div class="section-label">Visão consolidada · respeita os filtros aplicados</div>
+  <div class="kpis">
+    <div class="kpi" style="--kpi-color:var(--accent)">
+      <div class="kpi-label">Ações estratégicas</div>
+      <div class="kpi-value" id="kpi-estrategica">–</div>
+      <div class="kpi-sub" id="kpi-estrategica-pct">–</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--blue)">
+      <div class="kpi-label">Ações de rotina</div>
+      <div class="kpi-value" id="kpi-rotina">–</div>
+      <div class="kpi-sub" id="kpi-rotina-pct">–</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--violet)">
+      <div class="kpi-label">Ações atrasadas</div>
+      <div class="kpi-value" id="kpi-atrasada">–</div>
+      <div class="kpi-sub" id="kpi-atrasada-pct">–</div>
+    </div>
+    <div class="kpi" style="--kpi-color:var(--slate)">
+      <div class="kpi-label">Ações no mês</div>
+      <div class="kpi-value" id="kpi-mes">–</div>
+      <div class="kpi-sub" id="kpi-mes-sub">todos os meses</div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label for="f-tipo">Tipo de ação</label>
+      <select id="f-tipo"><option value="">Todos</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="f-area">Área envolvida</label>
+      <select id="f-area"><option value="">Todas</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="f-etapa">Etapa</label>
+      <select id="f-etapa"><option value="">Todas</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="f-status">Status</label>
+      <select id="f-status"><option value="">Todos</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="f-data">Data de finalização</label>
+      <select id="f-data"><option value="">Todas</option></select>
+    </div>
+    <div class="filter-group">
+      <label for="f-mes">Mês de finalização</label>
+      <select id="f-mes"><option value="">Todos</option></select>
+    </div>
+    <button class="filter-reset" id="reset-filters">Limpar filtros</button>
+  </div>
+
+  <div class="count-line">Exibindo <b id="count-shown">0</b> de <b id="count-total">0</b> ações</div>
+
+  <div class="grid" id="grid"></div>
+  <div class="empty-state" id="empty" style="display:none;">Nenhuma ação encontrada para os filtros selecionados.</div>
+
+  <footer>Fonte: Google Sheets · atualização automática a cada 30s · última sincronização: <span id="last-sync">—</span></footer>
+
+</div>
+
+<script>
+const SUPABASE_URL = "https://qwfamvboojitfcbviyjz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_XYQh0g1gsm1q81TeIiB5EA_34aJZ9T_";
+const TABLE = "acoes_revops";
+
+let rawRows = [];
+let filters = { tipo:"", area:"", etapa:"", status:"", data:"", mes:"" };
+const MONTH_NAMES = ["","Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+function statusClass(status){
+  const s = (status||"").toLowerCase();
+  if (s.includes("concl") && !s.includes("parcial")) return "status-concluido";
+  if (s.includes("parcial")) return "status-parcial";
+  if (s.includes("não iniciado") || s.includes("nao iniciado")) return "status-nao-iniciado";
+  if (s.includes("andamento")) return "status-andamento";
+  return "status-default";
+}
+function progressColor(pct){
+  if (pct >= 100) return "var(--green)";
+  if (pct >= 60) return "var(--accent)";
+  if (pct >= 30) return "var(--yellow)";
+  return "var(--orange)";
+}
+function parseDateKey(dateStr){
+  if (!dateStr) return Infinity;
+  const parts = String(dateStr).split("/");
+  if (parts.length < 2) return Infinity;
+  const dd = parseInt(parts[0], 10);
+  const mm = parseInt(parts[1], 10);
+  const yyyy = parts[2] ? parseInt(parts[2], 10) : 0;
+  if (isNaN(dd) || isNaN(mm)) return Infinity;
+  return yyyy * 10000 + mm * 100 + dd;
+}
+function getMonthNumber(dateStr){
+  if (!dateStr) return null;
+  const parts = String(dateStr).split("/");
+  if (parts.length < 2) return null;
+  const mm = parseInt(parts[1], 10);
+  return isNaN(mm) ? null : mm;
+}
+function parseDateBR(dateStr){
+  if (!dateStr) return null;
+  const parts = String(dateStr).split("/");
+  if (parts.length < 3) return null;
+  const [dd, mm, yyyy] = parts.map(p=>parseInt(p,10));
+  if (!dd || !mm || !yyyy) return null;
+  return new Date(yyyy, mm-1, dd);
+}
+function isoParaBR(isoStr){
+  if (!isoStr) return "";
+  const parts = String(isoStr).split("-");
+  if (parts.length !== 3) return "";
+  const [yyyy, mm, dd] = parts;
+  return `${dd}/${mm}/${yyyy}`;
+}
+function populateMonthSelect(){
+  const months = [...new Set(rawRows.map(r=>getMonthNumber(r.data)).filter(m=>m))].sort((a,b)=>a-b);
+  const sel = document.getElementById("f-mes");
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Todos</option>';
+  months.forEach(m=>{
+    const opt = document.createElement("option");
+    opt.value = String(m);
+    opt.textContent = MONTH_NAMES[m];
+    sel.appendChild(opt);
+  });
+  if ([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+function tipoClass(tipo){
+  const t = (tipo||"").toLowerCase();
+  if (t.includes("estrat")) return "estrategica";
+  return "rotina";
+}
+function etapaClass(etapa){
+  const e = (etapa||"").toLowerCase();
+  if (e.includes("intelig")) return "etapa-inteligencia";
+  if (e.includes("opera")) return "etapa-operacao";
+  if (e.includes("valida")) return "etapa-validacao";
+  if (e.includes("finaliza")) return "etapa-finalizacao";
+  if (e.includes("backlog") || e.includes("planej")) return "etapa-planejamento";
+  return "";
+}
+
+function populateSelect(id, values){
+  const sel = document.getElementById(id);
+  const current = sel.value;
+  const placeholder = sel.options[0];
+  sel.innerHTML = "";
+  sel.appendChild(placeholder);
+  [...new Set(values)].filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt-BR')).forEach(v=>{
+    const opt = document.createElement("option");
+    opt.value = v; opt.textContent = v;
+    sel.appendChild(opt);
+  });
+  if ([...sel.options].some(o=>o.value===current)) sel.value = current;
+}
+
+function render(){
+  const filtered = rawRows.filter(r=>{
+    if (filters.tipo && r.tipo !== filters.tipo) return false;
+    if (filters.area && r.area !== filters.area) return false;
+    if (filters.etapa && r.etapa !== filters.etapa) return false;
+    if (filters.status && r.status !== filters.status) return false;
+    if (filters.data && r.data !== filters.data) return false;
+    if (filters.mes && String(getMonthNumber(r.data)) !== filters.mes) return false;
+    return true;
+  });
+
+  filtered.sort((a,b)=> parseDateKey(a.data) - parseDateKey(b.data));
+
+  document.getElementById("count-shown").textContent = filtered.length;
+  document.getElementById("count-total").textContent = rawRows.length;
+
+  const grid = document.getElementById("grid");
+  const empty = document.getElementById("empty");
+  grid.innerHTML = "";
+
+  if (filtered.length === 0){
+    empty.style.display = "block";
+  } else {
+    empty.style.display = "none";
+    filtered.forEach(r=>{
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="card-title">${escapeHtml(r.acao)}</div>
+          <span class="status-badge ${statusClass(r.status)}">${escapeHtml(r.status||'—')}</span>
+        </div>
+        <div class="tags">
+          <span class="tag tag-tipo ${tipoClass(r.tipo)}">${escapeHtml(r.tipo||'—')}</span>
+          <span class="tag">${escapeHtml(r.area||'—')}</span>
+          <span class="tag tag-etapa ${etapaClass(r.etapa)}">${escapeHtml(r.etapa||'—')}</span>
+        </div>
+        <div class="meta-row">
+          <span><b>Prazo:</b> ${escapeHtml(r.data||'—')}</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Conclusão</span><span>${r.pct}%</span></div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width:${r.pct}%; background:${progressColor(r.pct)};"></div>
+          </div>
+        </div>
+        ${r.importancia ? `<div class="importance-note">${escapeHtml(r.importancia)}</div>` : ""}
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  // KPIs (agora respeitam todos os filtros aplicados, incluindo o mês)
+  const total = filtered.length;
+  const concluidos = filtered.filter(r=>statusClass(r.status)==="status-concluido").length;
+  const andamento = filtered.filter(r=>statusClass(r.status)==="status-andamento").length;
+  const media = total ? Math.round(filtered.reduce((s,r)=>s+r.pct,0)/total) : 0;
+  const estrategicas = filtered.filter(r=>tipoClass(r.tipo)==="estrategica").length;
+  const rotina = filtered.filter(r=>tipoClass(r.tipo)==="rotina").length;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const atrasadas = filtered.filter(r=>{
+    if (statusClass(r.status) === "status-concluido") return false;
+    const d = parseDateBR(r.data);
+    return d && d < hoje;
+  }).length;
+
+  document.getElementById("kpi-total").textContent = total;
+  document.getElementById("kpi-concluido").textContent = concluidos;
+  document.getElementById("kpi-concluido-pct").textContent = total ? Math.round(concluidos/total*100)+"% do total" : "–";
+  document.getElementById("kpi-andamento").textContent = andamento;
+  document.getElementById("kpi-andamento-pct").textContent = total ? Math.round(andamento/total*100)+"% do total" : "–";
+  document.getElementById("kpi-media").textContent = media+"%";
+
+  document.getElementById("kpi-estrategica").textContent = estrategicas;
+  document.getElementById("kpi-estrategica-pct").textContent = total ? Math.round(estrategicas/total*100)+"% do total" : "–";
+  document.getElementById("kpi-rotina").textContent = rotina;
+  document.getElementById("kpi-rotina-pct").textContent = total ? Math.round(rotina/total*100)+"% do total" : "–";
+  document.getElementById("kpi-atrasada").textContent = atrasadas;
+  document.getElementById("kpi-atrasada-pct").textContent = total ? Math.round(atrasadas/total*100)+"% do total" : "–";
+  document.getElementById("kpi-mes").textContent = total;
+  document.getElementById("kpi-mes-sub").textContent = filters.mes ? MONTH_NAMES[parseInt(filters.mes,10)] : "todos os meses";
+}
+
+function escapeHtml(str){
+  const d = document.createElement("div");
+  d.textContent = str ?? "";
+  return d.innerHTML;
+}
+
+function wireFilters(){
+  document.getElementById("f-tipo").addEventListener("change", e=>{filters.tipo=e.target.value; render();});
+  document.getElementById("f-area").addEventListener("change", e=>{filters.area=e.target.value; render();});
+  document.getElementById("f-etapa").addEventListener("change", e=>{filters.etapa=e.target.value; render();});
+  document.getElementById("f-status").addEventListener("change", e=>{filters.status=e.target.value; render();});
+  document.getElementById("f-data").addEventListener("change", e=>{filters.data=e.target.value; render();});
+  document.getElementById("f-mes").addEventListener("change", e=>{filters.mes=e.target.value; render();});
+  document.getElementById("reset-filters").addEventListener("click", ()=>{
+    filters = { tipo:"", area:"", etapa:"", status:"", data:"", mes:"" };
+    ["f-tipo","f-area","f-etapa","f-status","f-data","f-mes"].forEach(id=>document.getElementById(id).value="");
+    render();
+  });
+}
+
+async function fetchData(){
+  try{
+    const resp = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=*&order=data_finalizacao.asc`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+    handleSupabaseData(data);
+  }catch(err){
+    console.error(err);
+    onFetchError();
+  }
+}
+
+function onFetchError(){
+  document.getElementById("status-text").textContent = "erro ao conectar — verifique a conexão com o Supabase";
+  document.getElementById("live-dot").style.display = "none";
+  document.getElementById("live-dot-err").style.display = "inline-block";
+}
+
+function handleSupabaseData(data){
+  try{
+    rawRows = data.map(row=>({
+      acao: String(row.acao || "").trim(),
+      tipo: String(row.tipo_acao || "").trim(),
+      area: String(row.area_envolvida || "").trim(),
+      etapa: String(row.etapa || "").trim(),
+      status: String(row.status || "").trim(),
+      pct: Math.round((row.pct_conclusao || 0) * 100),
+      data: isoParaBR(row.data_finalizacao),
+      importancia: String(row.importancia_acao || "").trim(),
+    })).filter(r=>r.acao);
+
+    populateSelect("f-tipo", rawRows.map(r=>r.tipo));
+    populateSelect("f-area", rawRows.map(r=>r.area));
+    populateSelect("f-etapa", rawRows.map(r=>r.etapa));
+    populateSelect("f-status", rawRows.map(r=>r.status));
+    populateSelect("f-data", rawRows.map(r=>r.data));
+    populateMonthSelect();
+
+    render();
+
+    document.getElementById("status-text").textContent = "ao vivo";
+    document.getElementById("live-dot").style.display = "inline-block";
+    document.getElementById("live-dot-err").style.display = "none";
+    document.getElementById("last-sync").textContent = new Date().toLocaleTimeString('pt-BR');
+  }catch(err){
+    console.error(err);
+    onFetchError();
+  }
+}
+
+wireFilters();
+fetchData();
+setInterval(fetchData, 30000);
+</script>
+</body>
+</html>
